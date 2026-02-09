@@ -160,7 +160,7 @@ function render(data) {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${e.date}</td>
+      <td>${formatDate(e.date)}</td>
       <td>${e.category}</td>
       <td>${e.name}</td>
       <td>₹ ${formatNumber(e.amount)}</td>
@@ -219,6 +219,13 @@ document.getElementById("submitBtn").onclick = () => {
   clearInputs();
 };
 
+function formatDate(isoDate) {
+  if (!isoDate) return "";
+  const [year, month, day] = isoDate.split("-");
+  return `${day}-${month}-${year}`;
+}
+
+
 updateBtn.onclick = () => {
   if (!isAdmin || !selectedId) return;
   const e = expenses.find(x => x.id === selectedId);
@@ -273,7 +280,7 @@ document.getElementById("pdfExport").onclick = () => {
   y += 10;
 
   pdf.setFontSize(11);
-  pdf.text("Date", 10, y);
+ pdf.text(formatDate(e.date), 10, y);
   pdf.text("Category", 50, y);
   pdf.text("Name", 90, y);
   pdf.text("Amount (₹)", 160, y, { align: "right" });
