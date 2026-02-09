@@ -1,77 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>House Expense</title>
-    <link rel="stylesheet" href="index.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House Expense</title>
+<link rel="stylesheet" href="index.css">
 </head>
+
 <body>
-    <div class="main-container">
+<div class="main-container">
 
-        <div class="heading">
-            <h1>House Expense</h1>
-        </div>
-        <div class="container">
-            <div class="toolbar">
-                <div class="searchBar">
-                    <input type="search" placeholder="Search">
-                    <button id="searchBtn">Serach</button>
-                    <select name="" id="">
-                        <option value="">Sort By </option>
-                        <option value="material">Sort By Material Cost </option>
-                        <option value="labour">Sort By Labour Cost</option>
-                    </select>
-                </div>
-                <div class="buttonBar">
-                    <button id="addBtn">Add</button>
-                    <button id="updateBtn">Update</button>
-                    <button id="deleteBtn">Delete</button>
-                </div>
-                <div class="exportBar">
-                    <Button>Export As Image</Button>
-                    <Button>Export As Pdf</Button>
-                </div>
-                </div>
-            </div>
-            <div class="input-card">
-                <input type="date" id="dateInput">
-                <select name="category" id="categoryInput">
-                    <option value="">Select Category</option>
-                    <option value="material">Material</option>
-                    <option value="labour">Labour</option>
-                </select>
-                <input type="text" placeholder="Enter Name" id="nameInput">
-                <input type="number" placeholder="Enter Amount" id="amountInput">
-                    <button id="submitBtn">Submit</button>
-                    <button id="cancelBtn">Cancel</button>
-            </div>
+  <div class="heading">
+    <h1>House Expense</h1>
+  </div>
 
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Category</th>
-                            <th>Name</th>
-                            <th>Amount (₹)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="expenseTable">
-                    </tbody>
-                    <tfoot>
-                        <tr class="total-row">
-                            <td colspan="3">Total Amount:</td>
-                            <td id="totalAmount">0</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            
-        </div>
+  <div class="container">
+    <div class="toolbar">
+      <div class="searchBar">
+        <input type="search" id="searchInput" placeholder="Search">
+        <button id="searchBtn">Search</button>
 
+        <select id="sortSelect">
+          <option value="">Sort By</option>
+          <option value="latest">Latest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="month">Month Order</option>
+          <option value="material">Material Only</option>
+          <option value="labour">Labour Only</option>
+        </select>
+      </div>
+
+      <div class="buttonBar">
+        <button id="addBtn">Add</button>
+        <button id="updateBtn">Update</button>
+        <button id="deleteBtn">Delete</button>
+      </div>
+
+      <div class="exportBar">
+        <button id="imgExport">Export Image</button>
+        <button id="pdfExport">Export PDF</button>
+      </div>
     </div>
+  </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- INPUT -->
+  <div class="input-card">
+    <input type="date" id="dateInput">
+    <select id="categoryInput">
+      <option value="">Category</option>
+      <option value="material">Material</option>
+      <option value="labour">Labour</option>
+    </select>
+    <input type="text" id="nameInput" placeholder="Name">
+    <input type="number" id="amountInput" placeholder="Amount">
+    <button id="submitBtn">Submit</button>
+    <button id="cancelBtn">Cancel</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Name</th>
+          <th>Amount (₹)</th>
+        </tr>
+      </thead>
+
+      <tbody id="expenseTable"></tbody>
+
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="3">
+            <small class="total-label">Total Amount</small><br>
+            <small id="totalText" class="total-text"></small>
+          </td>
+          <td>
+            <span class="currency">₹</span>
+            <span id="totalAmount">0</span>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
@@ -80,17 +97,13 @@ const ADMIN_CODE = "1234";
 let isAdmin = false;
 
 /* ================= ELEMENTS ================= */
-const title = document.querySelector("h1");
 const addBtn = document.getElementById("addBtn");
 const updateBtn = document.getElementById("updateBtn");
 const deleteBtn = document.getElementById("deleteBtn");
-const searchBtn = document.getElementById("searchBtn");
-const sortSelect = document.querySelector("select");
-const exportBtns = document.querySelectorAll(".exportBar button");
-
 const inputCard = document.querySelector(".input-card");
 const tableBody = document.getElementById("expenseTable");
 const totalAmountEl = document.getElementById("totalAmount");
+const totalTextEl = document.getElementById("totalText");
 
 const dateInput = document.getElementById("dateInput");
 const categoryInput = document.getElementById("categoryInput");
@@ -99,195 +112,207 @@ const amountInput = document.getElementById("amountInput");
 
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 expenses = expenses.map(e => ({ ...e, id: e.id || Date.now() + Math.random() }));
-
 let selectedId = null;
 
-/* ================= INIT ================= */
-inputCard.style.display = "none";
-hideAdmin();
+/* Hide admin buttons */
+[addBtn, updateBtn, deleteBtn].forEach(b => b.style.display = "none");
 
-/* ================= ADMIN UNLOCK ================= */
+/* Admin unlock */
 document.addEventListener("keydown", e => {
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "a") adminPrompt();
-});
-
-let taps = 0, timer;
-title.addEventListener("touchstart", () => {
-    taps++;
-    if (taps === 1) timer = setTimeout(() => taps = 0, 3000);
-    if (taps === 5) {
-        clearTimeout(timer);
-        taps = 0;
-        adminPrompt();
+  if (e.ctrlKey && e.shiftKey && e.key === "A") {
+    if (prompt("Admin Code") === ADMIN_CODE) {
+      isAdmin = true;
+      [addBtn, updateBtn, deleteBtn].forEach(b => b.style.display = "inline-block");
     }
+  }
 });
-
-function adminPrompt() {
-    const code = prompt("Enter Admin Code");
-    if (code === ADMIN_CODE) {
-        isAdmin = true;
-        showAdmin();
-        alert("Admin access enabled");
-    }
-}
-
-function hideAdmin() {
-    addBtn.style.display =
-    updateBtn.style.display =
-    deleteBtn.style.display = "none";
-}
-
-function showAdmin() {
-    addBtn.style.display =
-    updateBtn.style.display =
-    deleteBtn.style.display = "inline-block";
-}
 
 /* ================= RENDER ================= */
 function render(data) {
-    tableBody.innerHTML = "";
-    let total = 0;
+  tableBody.innerHTML = "";
+  let total = 0;
 
-    data.forEach(e => {
-        total += Number(e.amount);
-        const row = document.createElement("tr");
+  data.forEach(e => {
+    total += Number(e.amount);
 
-        row.innerHTML = `
-            <td>${e.date}</td>
-            <td>${e.category}</td>
-            <td>${e.name}</td>
-            <td>₹ ${e.amount}</td>
-        `;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${e.date}</td>
+      <td>${e.category}</td>
+      <td>${e.name}</td>
+      <td>₹ ${formatNumber(e.amount)}</td>
+    `;
 
-        row.onclick = () => {
-            if (!isAdmin) return;
-            document.querySelectorAll("#expenseTable tr").forEach(r => r.classList.remove("selected"));
-            row.classList.add("selected");
-            selectedId = e.id;
-        };
+    tr.onclick = () => {
+      if (!isAdmin) return;
+      selectedId = e.id;
+    };
 
-        tableBody.appendChild(row);
-    });
+    tableBody.appendChild(tr);
+  });
 
-    totalAmountEl.textContent = "₹ " + total;
+  totalAmountEl.textContent = formatNumber(total);
+  totalTextEl.textContent = numberToWords(total) + " only";
 }
-
 render(expenses);
 
-/* ================= ADD ================= */
+/* ================= ADD / UPDATE / DELETE ================= */
 addBtn.onclick = () => {
-    selectedId = null;
-    clearInputs();
-    inputCard.style.display = "flex";
+  selectedId = null;
+  clearInputs();
+  inputCard.style.display = "flex";
 };
 
-/* ================= SUBMIT ================= */
-submitBtn.onclick = () => {
-    if (!isAdmin) return;
+document.getElementById("submitBtn").onclick = () => {
+  if (!isAdmin) return;
 
-    if (![dateInput, categoryInput, nameInput, amountInput].every(i => i.value)) {
-        alert("Fill all fields");
-        return;
-    }
+  if (!dateInput.value || !categoryInput.value || !nameInput.value || !amountInput.value) {
+    alert("Fill all fields");
+    return;
+  }
 
-    if (selectedId === null) {
-        expenses.push({
-            id: Date.now(),
-            date: dateInput.value,
-            category: categoryInput.value,
-            name: nameInput.value,
-            amount: amountInput.value
-        });
-    } else {
-        const idx = expenses.findIndex(e => e.id === selectedId);
-        if (idx !== -1) {
-            expenses[idx] = {
-                ...expenses[idx],
-                date: dateInput.value,
-                category: categoryInput.value,
-                name: nameInput.value,
-                amount: amountInput.value
-            };
-        }
-    }
+  if (selectedId === null) {
+    expenses.push({
+      id: Date.now(),
+      date: dateInput.value,
+      category: categoryInput.value,
+      name: nameInput.value,
+      amount: amountInput.value
+    });
+  } else {
+    const idx = expenses.findIndex(e => e.id === selectedId);
+    expenses[idx] = { ...expenses[idx],
+      date: dateInput.value,
+      category: categoryInput.value,
+      name: nameInput.value,
+      amount: amountInput.value
+    };
+  }
 
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-    render(expenses);
-    inputCard.style.display = "none";
-    selectedId = null;
-    clearInputs();
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+  render(expenses);
+  inputCard.style.display = "none";
+  selectedId = null;
+  clearInputs();
 };
 
-/* ================= UPDATE ================= */
 updateBtn.onclick = () => {
-    if (!isAdmin || selectedId === null) return alert("Select a row");
-    const e = expenses.find(x => x.id === selectedId);
-    if (!e) return;
-
-    dateInput.value = e.date;
-    categoryInput.value = e.category;
-    nameInput.value = e.name;
-    amountInput.value = e.amount;
-    inputCard.style.display = "flex";
+  if (!isAdmin || !selectedId) return;
+  const e = expenses.find(x => x.id === selectedId);
+  dateInput.value = e.date;
+  categoryInput.value = e.category;
+  nameInput.value = e.name;
+  amountInput.value = e.amount;
+  inputCard.style.display = "flex";
 };
 
-/* ================= DELETE ================= */
 deleteBtn.onclick = () => {
-    if (!isAdmin || selectedId === null) return alert("Select a row");
-    expenses = expenses.filter(e => e.id !== selectedId);
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-    selectedId = null;
-    render(expenses);
+  if (!isAdmin || !selectedId) return;
+  expenses = expenses.filter(e => e.id !== selectedId);
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+  selectedId = null;
+  render(expenses);
 };
 
-/* ================= SEARCH ================= */
-searchBtn.onclick = () => {
-    const term = document.querySelector("input[type='search']").value.toLowerCase();
-    render(expenses.filter(e =>
-        e.name.toLowerCase().includes(term) ||
-        e.category.toLowerCase().includes(term)
-    ));
+/* ================= SEARCH & SORT ================= */
+document.getElementById("searchBtn").onclick = () => {
+  const t = document.getElementById("searchInput").value.toLowerCase();
+  render(expenses.filter(e => e.name.toLowerCase().includes(t)));
 };
 
-/* ================= SORT ================= */
-sortSelect.onchange = () => {
-    if (!sortSelect.value) return render(expenses);
-    render(expenses.filter(e => e.category === sortSelect.value));
+document.getElementById("sortSelect").onchange = e => {
+  let d = [...expenses];
+  if (e.target.value === "latest") d.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  else if (e.target.value === "oldest") d.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  else if (e.target.value === "month") d.sort((a,b)=>new Date(a.date).getMonth()-new Date(b.date).getMonth());
+  else if (e.target.value) d = d.filter(x=>x.category===e.target.value);
+  render(d);
 };
 
-/* ================= EXPORT ================= */
-exportBtns[0].onclick = () => {
-    html2canvas(document.querySelector("table")).then(c => {
-        const a = document.createElement("a");
-        a.href = c.toDataURL();
-        a.download = "expenses.png";
-        a.click();
-    });
+/* ================= EXPORT IMAGE ================= */
+document.getElementById("imgExport").onclick = () =>
+  html2canvas(document.querySelector(".table-container")).then(c => {
+    const a = document.createElement("a");
+    a.href = c.toDataURL();
+    a.download = "expenses.png";
+    a.click();
+  });
+
+/* ================= INVOICE STYLE PDF ================= */
+document.getElementById("pdfExport").onclick = () => {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p","mm","a4");
+
+  let y = 20;
+
+  pdf.setFontSize(16);
+  pdf.text("HOUSE EXPENSE INVOICE", 105, y, { align: "center" });
+  y += 10;
+
+  pdf.setFontSize(11);
+  pdf.text("Date", 10, y);
+  pdf.text("Category", 50, y);
+  pdf.text("Name", 90, y);
+  pdf.text("Amount (₹)", 160, y, { align: "right" });
+
+  y += 4;
+  pdf.line(10, y, 200, y);
+  y += 6;
+
+  let total = 0;
+
+  expenses.forEach(e => {
+    if (y > 270) {
+      pdf.addPage();
+      y = 20;
+    }
+
+    pdf.text(e.date, 10, y);
+    pdf.text(e.category, 50, y);
+    pdf.text(e.name, 90, y);
+    pdf.text(formatNumber(e.amount), 160, y, { align: "right" });
+
+    total += Number(e.amount);
+    y += 6;
+  });
+
+  y += 6;
+  pdf.line(10, y, 200, y);
+  y += 8;
+
+  pdf.setFontSize(12);
+  pdf.text(`Total Amount : ₹ ${formatNumber(total)}`, 10, y);
+  y += 7;
+
+  pdf.setFontSize(11);
+  pdf.text(`Amount in Words : ${numberToWords(total)} only`, 10, y, { maxWidth: 180 });
+
+  pdf.save("house-expense-invoice.pdf");
 };
 
-exportBtns[1].onclick = () => {
-    html2canvas(document.querySelector("table")).then(c => {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-        pdf.addImage(c.toDataURL("image/png"), "PNG", 10, 10, 190, 0);
-        pdf.save("expenses.pdf");
-    });
-};
-
-/* ================= CANCEL ================= */
-cancelBtn.onclick = () => {
-    inputCard.style.display = "none";
-    selectedId = null;
-    clearInputs();
-};
-
+/* ================= HELPERS ================= */
 function clearInputs() {
-    dateInput.value =
-    categoryInput.value =
-    nameInput.value =
-    amountInput.value = "";
+  dateInput.value = categoryInput.value = nameInput.value = amountInput.value = "";
+}
+
+function formatNumber(num) {
+  return Number(num).toLocaleString("en-IN");
+}
+
+function numberToWords(num) {
+  if (num === 0) return "zero";
+  const a=["","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+  const b=["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+  const w=n=>{
+    if(n<20)return a[n];
+    if(n<100)return b[Math.floor(n/10)]+" "+a[n%10];
+    if(n<1000)return a[Math.floor(n/100)]+" hundred "+(n%100?w(n%100):"");
+    if(n<100000)return w(Math.floor(n/1000))+" thousand "+(n%1000?w(n%1000):"");
+    if(n<10000000)return w(Math.floor(n/100000))+" lakh "+(n%100000?w(n%100000):"");
+    return w(Math.floor(n/10000000))+" crore "+(n%10000000?w(n%10000000):"");
+  };
+  return w(num).trim();
 }
 </script>
-
 </body>
 </html>
