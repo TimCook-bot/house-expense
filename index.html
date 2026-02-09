@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Expense</title>
+    <style>
+       * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+body {
+    background: #f2f4f8;
+}
+
+.main-container {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.heading h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 25px;
+}
+
+.container {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.searchBar,
+.buttonBar,
+.exportBar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+input, select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #fff;
+}
+
+#addBtn { background: #28a745; }
+#updateBtn { background: #007bff; }
+#deleteBtn { background: #dc3545; }
+#searchBtn { background: #6c757d; }
+
+.exportBar button {
+    background: #343a40;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+.input-card {
+    display: none;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.input-card button {
+    background: #17a2b8;
+}
+
+#cancelBtn {
+    background: #6c757d;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+thead {
+    background: linear-gradient(90deg, #007bff, #0056b3);
+    color: white;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+tbody tr:nth-child(even) {
+    background: #f2f2f2;
+}
+
+tbody tr:hover {
+    background: #e9f3ff;
+}
+
+tfoot {
+    background: #eef2f7;
+}
+
+.total-row td {
+    font-weight: bold;
+}
+
+#totalAmount {
+    color: #007bff;
+}
+    </style>
+</head>
+<body>
+    <div class="main-container">
+
+        <div class="heading">
+            <h1>House Expense</h1>
+        </div>
+        <div class="container">
+            <div class="toolbar">
+                <div class="searchBar">
+                    <input type="search" placeholder="Search">
+                    <button id="searchBtn">Serach</button>
+                    <select name="" id="">
+                        <option value="">Sort By </option>
+                        <option value="material">Sort By Material Cost </option>
+                        <option value="labour">Sort By Labour Cost</option>
+                    </select>
+                </div>
+                <div class="buttonBar">
+                    <button id="addBtn">Add</button>
+                    <button id="updateBtn">Update</button>
+                    <button id="deleteBtn">Delete</button>
+                </div>
+                <div class="exportBar">
+                    <Button>Export As Image</Button>
+                    <Button>Export As Pdf</Button>
+                </div>
+                </div>
+            </div>
+            <div class="input-card">
+                <input type="date" id="dateInput">
+                <select name="category" id="categoryInput">
+                    <option value="">Select Category</option>
+                    <option value="material">Material</option>
+                    <option value="labour">Labour</option>
+                </select>
+                <input type="text" placeholder="Enter Name" id="nameInput">
+                <input type="number" placeholder="Enter Amount" id="amountInput">
+                    <button id="submitBtn">Submit</button>
+                    <button id="cancelBtn">Cancel</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Name</th>
+                            <th>Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTable">
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="3">Total Amount:</td>
+                            <td id="totalAmount">0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            
+        </div>
+
+    </div>
+
+    <script>
+        const addBtn= document.getElementById("addBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const submitBtn = document.getElementById("submitBtn");
+        
+        const inputCard= document.querySelector(".input-card");
+        const tablebody=document.getElementById("expenseTable");
+        const totalamountE1 = document.getElementById("totalAmount");
+
+        const dateInput = document.getElementById("dateInput");
+        const categoryInput = document.getElementById("categoryInput");
+        const nameInput = document.getElementById("nameInput");
+        const amountInput= document.getElementById("amountInput")
+
+        let total=0;
+
+
+        addBtn.addEventListener("click",()=>{
+            inputCard.style.display = "block";
+        });
+
+        cancelBtn.addEventListener("click",()=>{
+            inputCard.style.display= "none"
+        });
+
+        submitBtn.addEventListener("click",()=>{
+            inputCard.style.display= "none";
+
+            const date=dateInput.value;
+            const category=categoryInput.value;
+            const name=nameInput.value;
+            const amount=Number(amountInput.value);
+
+            if(!date || !category || !name || !amount){
+                alert("poda myre");
+                return;
+            }
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${date}</td>
+                <td>${category}</td>
+                <td>${name}</td>
+                <td>${amount}</td>
+            `;
+
+            tablebody.appendChild(row);
+
+            total+= amount;
+            totalamountE1.textContent=`₹ ${total}`
+
+
+            dateInput.value="";
+            categoryInput.value="";
+            nameInput.value="";
+            amountInput.value="";
+
+            inputCard.style.display="none";
+        });
+    </script>
+</body>
+</html>
