@@ -126,7 +126,30 @@ document.addEventListener("keydown", e => {
     }
   }
 });
+const heading = document.querySelector(".heading h1");
 
+let tapCount = 0;
+let tapTimer = null;
+
+heading.addEventListener("touchstart", () => {
+  tapCount++;
+
+  if (tapCount === 1) {
+    tapTimer = setTimeout(() => {
+      tapCount = 0;
+    }, 2000); // 2 seconds window
+  }
+
+  if (tapCount === 3) {
+    clearTimeout(tapTimer);
+    tapCount = 0;
+
+    if (prompt("Admin Code") === ADMIN_CODE) {
+      isAdmin = true;
+      [addBtn, updateBtn, deleteBtn].forEach(b => b.style.display = "inline-block");
+    }
+  }
+});
 /* ================= RENDER ================= */
 function render(data) {
   tableBody.innerHTML = "";
