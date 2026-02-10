@@ -268,22 +268,24 @@ document.getElementById("imgExport").onclick = () =>
     a.click();
   });
 
-/* ================= INVOICE STYLE PDF ================= */
+/* ================= INVOICE STYLE PDF (FIXED) ================= */
 document.getElementById("pdfExport").onclick = () => {
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("p","mm","a4");
+  const pdf = new jsPDF("p", "mm", "a4");
 
   let y = 20;
 
+  /* ===== Title ===== */
   pdf.setFontSize(16);
   pdf.text("HOUSE EXPENSE INVOICE", 105, y, { align: "center" });
-  y += 10;
+  y += 12;
 
+  /* ===== Table Header ===== */
   pdf.setFontSize(11);
- pdf.text(formatDate(e.date), 10, y);
+  pdf.text("Date", 10, y);
   pdf.text("Category", 50, y);
   pdf.text("Name", 90, y);
-  pdf.text("Amount (₹)", 160, y, { align: "right" });
+  pdf.text("Amount (₹)", 190, y, { align: "right" });
 
   y += 4;
   pdf.line(10, y, 200, y);
@@ -291,22 +293,24 @@ document.getElementById("pdfExport").onclick = () => {
 
   let total = 0;
 
+  /* ===== Table Rows ===== */
   expenses.forEach(e => {
     if (y > 270) {
       pdf.addPage();
       y = 20;
     }
 
-    pdf.text(e.date, 10, y);
+    pdf.text(formatDate(e.date), 10, y);
     pdf.text(e.category, 50, y);
     pdf.text(e.name, 90, y);
-    pdf.text(formatNumber(e.amount), 160, y, { align: "right" });
+    pdf.text(formatNumber(e.amount), 190, y, { align: "right" });
 
     total += Number(e.amount);
     y += 6;
   });
 
-  y += 6;
+  /* ===== Footer ===== */
+  y += 4;
   pdf.line(10, y, 200, y);
   y += 8;
 
@@ -315,10 +319,16 @@ document.getElementById("pdfExport").onclick = () => {
   y += 7;
 
   pdf.setFontSize(11);
-  pdf.text(`Amount in Words : ${numberToWords(total)} only`, 10, y, { maxWidth: 180 });
+  pdf.text(
+    `Amount in Words : ${numberToWords(total)} only`,
+    10,
+    y,
+    { maxWidth: 180 }
+  );
 
   pdf.save("house-expense-invoice.pdf");
 };
+
 
 /* ================= HELPERS ================= */
 function clearInputs() {
